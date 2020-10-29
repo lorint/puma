@@ -213,7 +213,11 @@ VALUE engine_init_server(VALUE self, VALUE mini_ssl_ctx) {
     ssl_options |= SSL_OP_NO_TLSv1;
   }
   if(RTEST(no_tlsv1_1)) {
-    ssl_options |= SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
+    #ifdef SSL_OP_NO_TLSv1_1
+        ssl_options |= SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
+    #else
+        ssl_options |= SSL_OP_NO_TLSv1;
+    #endif
   }
   SSL_CTX_set_options(ctx, ssl_options);
 #endif
