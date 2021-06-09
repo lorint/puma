@@ -211,10 +211,6 @@ sslctx_initialize(VALUE self, VALUE mini_ssl_ctx) {
     verification_flags, session_id_bytes;
   DH *dh;
 
-#if OPENSSL_VERSION_NUMBER < 0x10002000L
-  EC_KEY *ecdh;
-#endif
-
   TypedData_Get_Struct(self, SSL_CTX, &sslctx_type, ctx);
 
   key = rb_funcall(mini_ssl_ctx, rb_intern_const("key"), 0);
@@ -292,10 +288,10 @@ sslctx_initialize(VALUE self, VALUE mini_ssl_ctx) {
   dh = get_dh2048();
   SSL_CTX_set_tmp_dh(ctx, dh);
 
+// #ifndef OPENSSL_NO_ECDH
 #if OPENSSL_VERSION_NUMBER < 0x10002000L
-  // Remove this case if OpenSSL 1.0.1 (now EOL) support is no
-  // longer needed.
-  ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+  // Implements NID_X9_62_prime256v1 (P-256) curve over P-521 in order to support Chrome 70 and Edge
+  EC_KEY *ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
   if (ecdh) {
     SSL_CTX_set_tmp_ecdh(ctx, ecdh);
     EC_KEY_free(ecdh);
